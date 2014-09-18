@@ -1,13 +1,13 @@
 {
 	"name": "requirejs-dplugins",
-	"version": "0.2.3",
+	"version": "0.2.4",
 	"description": "AMD plugins for RequireJS",
 	"devDependencies": {
 		"grunt": "~0.4.1",
 		"grunt-contrib-jshint": "~0.6.0",
 		"grunt-jsbeautifier": "~0.2.2",
 		"requirejs": "~2.1.10",
-		"intern": "~1.6.2",
+		"intern": "~1.7",
 		"grunt-lineending": "^0.2.2"
 	},
 	"licenses": [{
