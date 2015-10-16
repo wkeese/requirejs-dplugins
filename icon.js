@@ -19,11 +19,7 @@ define([
 	// Text plugin to load the templates and do the build.
 	var textPlugin = "requirejs-text/text";
 
-	function generateSvg(id, icon, viewBox) {
-		return "<svg xmlns='http://www.w3.org/2000/svg' version='1.1' style='display: none'>\n" +
-			"<symbol viewBox='" + viewBox + "' id='" + id + "'>" + icon + "</symbol>"
-			+ "\n" + "</svg>";
-	}
+	var spriteContainer;
 
 	// This compensates for the fact that <svg>.innerHTML doesn't work in the browser
 	function _innerSVG(element) {
@@ -36,20 +32,17 @@ define([
 		return div.innerHTML;
 	}
 
-	function getFilename(filepath) {	// takes a path and returns the filename
-		return filepath.replace(/.*\/(.*)\.svg$/g, "$1");
-	}
-
-	function extractIcon(svg, filename) {// Makes a symbol out of an svg icon
-		if (document.getElementById(filename)) {
-			return;		// already added to document, don't add twice
+	// Makes a symbol out of an svg icon
+	function extractIcon(svg, id) {
+		if (spriteContainer.querySelector("#" + id)) {
+			return;		// already added, don't add twice
 		}
 		var div = document.createElement("div");
 		div.innerHTML = svg;
 		svg = div.querySelector("svg");
 		var icon = _innerSVG(svg);
 		var viewBox = svg.getAttribute("viewBox") || "";
-		document.body.innerHTML += generateSvg(filename, icon, viewBox);
+		spriteContainer.innerHTML += "<symbol viewBox='" + viewBox + "' id='" + id + "'>" + icon + "</symbol>";
 	}
 
 	return {
@@ -70,10 +63,16 @@ define([
 					return;
 				}
 
-				var filename = getFilename(mid);
+				if (!spriteContainer) {
+					spriteContainer = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+					spriteContainer.setAttribute("style", "display: none");
+					document.body.appendChild(spriteContainer);
+				}
+
+				var filename = mid.replace(/.*\/(.*)\.svg$/g, "$1");
 				extractIcon(svgText, filename);
 				onload();
-			}.bind(this));
+			});
 		},
 
 		/**
