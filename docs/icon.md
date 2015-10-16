@@ -5,7 +5,7 @@ title: requirejs-dplugins/icon
 
 # requirejs-dplugins/icon!
 
-This plugin load svg icons and declares them in one sprite, insert inline in the DOM, so that you can reference them
+This plugin loads svg icons so that you can reference them
 in a `<use>` tag.
 
 ## Example
@@ -17,7 +17,7 @@ define([
 ], function(){...})
 ```
 
-This will fetch `icon1.svg` and `icon2.svg` and add two symbols to the sprite.
+This will fetch `icon1.svg` and `icon2.svg` and add two symbols to the DOM.
 ```svg
 <svg>
 	...
@@ -35,5 +35,4 @@ You can then use the icons anytime only with
 ```
 
 ## Build
-The build step will merge all icons in one sprite beforehand and save the result in a `<layer>.min.svg`. 
-When running the built version, this sprite is fetched as soon as one of the icons inside is required.
+The build step will inline the icons into the built layer (JS) file.
