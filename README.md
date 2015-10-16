@@ -55,6 +55,11 @@ This plugin provides an API to handle string translation.
 
 See [docs/i18n.md](./docs/i18n.md) and [samples/i18n.html](./samples/i18n.html) for documentation and sample.
 
+## icon
+This plugins provide an API for loading and bundling svg icons.
+
+See [docs/icon.md](./docs/icon.md) for documentation.
+
 ## jquery
 This plugin loads the specified jQuery modules if they are not loaded already.
 

@@ -4,7 +4,8 @@
 	"description": "AMD plugins for RequireJS",
 	"dependencies": {
 		"lie": ">=2.8",
-		"requirejs": "2.1.x"
+		"requirejs": "2.1.x",
+		"text": "requirejs-text#2.0.14"
 	},
 	"devDependencies": {
 		"jquery": ">=2.1"
