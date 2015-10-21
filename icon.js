@@ -21,28 +21,23 @@ define([
 
 	var spriteContainer;
 
-	// This compensates for the fact that <svg>.innerHTML doesn't work in the browser
-	function _innerSVG(element) {
-		var div = document.createElement("div");
-
-		for (var i = 0, l = element.childNodes.length; i < l; i++) {
-			var node = element.childNodes[i];
-			div.appendChild(node.cloneNode(true));
-		}
-		return div.innerHTML;
-	}
-
 	// Makes a symbol out of an svg icon
-	function extractIcon(svg, id) {
+	function loadIcon(svgText, id) {
 		if (spriteContainer.querySelector("#" + id)) {
 			return;		// already added, don't add twice
 		}
 		var div = document.createElement("div");
-		div.innerHTML = svg;
-		svg = div.querySelector("svg");
-		var icon = _innerSVG(svg);
-		var viewBox = svg.getAttribute("viewBox") || "";
-		spriteContainer.innerHTML += "<symbol viewBox='" + viewBox + "' id='" + id + "'>" + icon + "</symbol>";
+		div.innerHTML = svgText;
+		var svg = div.querySelector("svg"),
+			symbol = document.createElementNS("http://www.w3.org/2000/svg", "symbol");
+		symbol.setAttribute("id", id);
+		if (svg.hasAttribute("viewBox") ) {
+			symbol.setAttribute("viewBox", svg.getAttribute("viewBox"));
+		}
+		while (svg.firstChild) {
+			symbol.appendChild(svg.firstChild);
+		}
+		spriteContainer.appendChild(symbol);
 	}
 
 	return {
@@ -70,7 +65,7 @@ define([
 				}
 
 				var filename = mid.replace(/.*\/(.*)\.svg$/g, "$1");
-				extractIcon(svgText, filename);
+				loadIcon(svgText, filename);
 				onload();
 			});
 		},
