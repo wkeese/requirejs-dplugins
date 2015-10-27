@@ -15,20 +15,18 @@
 
 define([
 	"require",
-	"./has",
-	"./Promise!",
 	"module",
 	"requirejs-text/text",
 	"requirejs-domready/domReady"
-], function (require, has, Promise, module, text) {
+], function (require, module, text) {
 	"use strict";
 
-	var loaded = {}, // paths of loaded svgs
-		SPRITE_ID = 'requirejs-dplugins-svg',
-		sprite = null;
+	var SPRITE_ID = 'requirejs-dplugins-svg',
+		sprite = null,
+		idSeq = 1;	// For generating unique IDs.  Alternately could use path.
 
 
-	var loadSVG = {
+	return {
 		id: module.id,
 
 		/**
@@ -39,58 +37,32 @@ define([
 		 * @method
 		 */
 		load: function (path, require, onload) {
-			if (has("builder")) { // when building
-				loaded[path] = true;
-				onload();
-			} else { // when running
-				// special case: when running a built version
-				// Replace graphic by corresponding sprite.
-				var idInLayer;
-				var layersMap = module.config().layersMap;
-				if (layersMap && layersMap[path]) {
-					idInLayer = layersMap[path].id;
-					path = layersMap[path].redirectTo;
+			require([
+				'requirejs-text/text!' + path,
+				"requirejs-domready/domReady!"
+			], function (svgText) {
+				if (!sprite) {
+					sprite = createSprite(document, SPRITE_ID);
+					document.body.appendChild(sprite);
 				}
+				var symbol = extractGraphicAsSymbol(document, svgText);
+				sprite.appendChild(symbol);
+				onload(symbol.getAttribute("id"));
+			});
+		},
 
-				if (!(path in loaded)) {
-					loaded[path] = new Promise(function (resolve) {
-						require([
-							'requirejs-text/text!' + path,
-							"requirejs-domready/domReady!"
-						], function (svgText) {
-							if (!sprite) {
-								sprite = createSprite(document, SPRITE_ID);
-								document.body.appendChild(sprite);
-							}
-							var symbol = extractGraphicAsSymbol(document, svgText);
-							sprite.appendChild(symbol);
-							resolve(idInLayer || symbol.getAttribute("id"));
-						});
-					});
-				}
-
-				loaded[path].then(function (symbolId) {
-					onload(symbolId);
-				});
-			}
+		write: function (pluginName, moduleName, write, loaderConfig) {
+			// Delegate to requirejs-text/text! to inline text into JS layer.
+			text.write(textPlugin, moduleName, write, loaderConfig);
 		}
 	};
-
-	if (has("builder")) {
-		loadSVG.write = function (pluginName, moduleName, write, loaderConfig) {
-			// Delegate to requirejs-text/text! plugin to load text into JS layer.
-			text.write(textPlugin, moduleName, write, loaderConfig);
-		};
-	}
-
-	return loadSVG;
 
 	// makes a symbol out of an svg graphic
 	function extractGraphicAsSymbol(document, svgText) {
 		var div = document.createElement("div");
 		div.innerHTML = svgText;
 		var element = div.querySelector("svg"),
-			id = element.getAttribute("id"),
+			id = 'requirejs-dplugins-svg-' + idSeq++,
 			viewBox = element.getAttribute("viewbox") || element.getAttribute("viewBox"),
 			symbol = createSymbol(document, id, element, viewBox);
 		return symbol;
@@ -102,7 +74,7 @@ define([
 		while (element.firstChild) {
 			symbol.appendChild(element.firstChild);
 		}
-		typeof id === "string" && symbol.setAttribute("id", id);
+		symbol.setAttribute("id", id);
 		typeof viewBox === "string" && symbol.setAttribute("viewBox", viewBox);
 		return symbol;
 	}
@@ -111,7 +83,7 @@ define([
 	function createSprite(document, id) {
 		var sprite = document.createElementNS("http://www.w3.org/2000/svg", "svg");
 		sprite.setAttribute("style", "display: none");
-		id && sprite.setAttribute("id", id);
+		sprite.setAttribute("id", id);
 		return sprite;
 	}
 });
