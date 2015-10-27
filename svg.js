@@ -20,7 +20,7 @@ define([
 	"module",
 	"requirejs-text/text",
 	"requirejs-domready/domReady"
-], function (require, has, Promise, module) {
+], function (require, has, Promise, module, text) {
 	"use strict";
 
 	var loaded = {}, // paths of loaded svgs
@@ -77,90 +77,10 @@ define([
 	};
 
 	if (has("builder")) {
-		// build variables
-		var writePluginFiles;
-
-		var buildFunctions = {
-			/**
-			 * Writes the layersMap configuration to the corresponding modules layer.
-			 * The configuration will look like this:
-			 * ```js
-			 * require.config({
-			 *     config: {
-			 *         "requirejs-dplugins/svg": {
-			 *             layersMap: {
-			 *                 "file1.svg": {redirectTo: "path/to/layer.svg", id: "id-inside-file-1"},
-			 *                 "file2.svg": {redirectTo: "path/to/layer.svg", id: "id-inside-file-2"}
-			 *             }
-			 *         }
-			 *     }
-			 * });
-			 * ```
-			 *
-			 * @param {Function} write - This function takes a string as argument
-			 * and writes it to the modules layer.
-			 * @param {string} mid - Current module id.
-			 * @param {string} dest - Current svg sprite path.
-			 * @param {Array} loaded - Maps the paths of the svg files contained in current sprite to their ids.
-			 */
-			writeConfig: function (write, mid, destMid, loaded) {
-				var svgConf = {
-					config: {},
-					paths: {}
-				};
-				svgConf.config[mid] = {
-					layersMap: {}
-				};
-				for (var path in loaded) {
-					svgConf.config[mid].layersMap[path] = {redirectTo: destMid, id: loaded[path]};
-				}
-
-				write("require.config(" + JSON.stringify(svgConf) + ");");
-			},
-
-			/**
-			 * Concatenates all svg files required by a modules layer and write the result.
-			 *
-			 * @param {Function} writePluginFiles - The write function provided by the builder to `writeFile`.
-			 * and writes it to the modules layer.
-			 * @param {string} dest - Current svg sprite path.
-			 * @param {Array} loaded - Maps the paths of the svg files contained in current sprite to their ids.
-			 */
-			writeLayer: function (writePluginFiles, dest, loaded) {
-				var fs = require.nodeRequire("fs"),
-					jsdom = require.nodeRequire("jsdom").jsdom;
-
-				var document = jsdom("<html></html>").parentWindow.document;
-				var sprite = createSprite(document);
-
-				for (var path in loaded) {
-					var svgText = fs.readFileSync(require.toUrl(path), "utf8"),
-						symbol = extractGraphicAsSymbol(document, svgText);
-					sprite.appendChild(symbol);
-					loaded[path] = symbol.getAttribute("id");
-				}
-				writePluginFiles(dest, sprite.outerHTML);
-			}
+		loadSVG.write = function (pluginName, moduleName, write, loaderConfig) {
+			// Delegate to requirejs-text/text! plugin to load text into JS layer.
+			text.write(textPlugin, moduleName, write, loaderConfig);
 		};
-
-		loadSVG.writeFile = function (pluginName, resource, require, write) {
-			writePluginFiles = write;
-		};
-
-		loadSVG.onLayerEnd = function (write, layer) {
-			if (layer.name && layer.path) {
-				var dest = layer.path.replace(/^(.*\/)?(.*).js$/, "$1/$2.svg"),
-					destMid = layer.name + ".svg";
-
-				// Write layer file and config
-				buildFunctions.writeLayer(writePluginFiles, dest, loaded);
-				buildFunctions.writeConfig(write, module.id, destMid, loaded);
-
-				// Reset cache
-				loaded = {};
-			}
-		};
-
 	}
 
 	return loadSVG;
