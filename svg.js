@@ -14,12 +14,13 @@
  */
 
 define([
+	"require",
 	"./has",
 	"./Promise!",
 	"module",
 	"requirejs-text/text",
 	"requirejs-domready/domReady"
-], function (has, Promise, module) {
+], function (require, has, Promise, module) {
 	"use strict";
 
 	var loaded = {}, // paths of loaded svgs
@@ -63,13 +64,13 @@ define([
 							}
 							var symbol = extractGraphicAsSymbol(document, svgText);
 							sprite.appendChild(symbol);
-							resolve(symbol.getAttribute("id"));
+							resolve(idInLayer || symbol.getAttribute("id"));
 						});
 					});
 				}
 
 				loaded[path].then(function (symbolId) {
-					onload(idInLayer || symbolId);
+					onload(symbolId);
 				});
 			}
 		}
